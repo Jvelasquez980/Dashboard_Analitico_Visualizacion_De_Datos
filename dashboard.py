@@ -292,7 +292,94 @@ def _run_dashboard():
         )
         st.plotly_chart(fig4, use_container_width=True)
 
-    # ─── ROW 3: Table + Histogram ───
+    # ─── ROW 3: Status + Channel ───
+    cd, ce = st.columns(2)
+
+    with cd:
+        st.markdown(f'<p class="section-header">🔵 Estado de Quejas</p>', unsafe_allow_html=True)
+        status_counts = df['Status'].value_counts().reset_index()
+        status_counts.columns = ['Status', 'count']
+        status_palette = [GREEN, YELLOW, BLUE, ACCENT, GRAY, RED]
+        fig_status = go.Figure(go.Pie(
+            labels=status_counts['Status'],
+            values=status_counts['count'],
+            hole=0.62,
+            marker=dict(
+                colors=status_palette[:len(status_counts)],
+                line=dict(color=DARK, width=2)
+            ),
+            textinfo='label+percent',
+            textfont=dict(color=WHITE, size=11),
+            hovertemplate="<b>%{label}</b><br>%{value:,} quejas<br>%{percent}<extra></extra>",
+            sort=True
+        ))
+        total_filtered = len(df)
+        fig_status.add_annotation(
+            text=f"<b>{total_filtered:,}</b><br><span style='font-size:10px'>quejas</span>",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(color=WHITE, size=13),
+            align='center'
+        )
+        fig_status.update_layout(
+            paper_bgcolor=PANEL, plot_bgcolor=PANEL, height=300,
+            margin=dict(l=10, r=10, t=10, b=10),
+            legend=dict(
+                bgcolor=DARK, bordercolor=BORDER,
+                font=dict(color=WHITE, size=10),
+                orientation='v', x=1.02, y=0.5
+            ),
+            showlegend=True
+        )
+        st.plotly_chart(fig_status, use_container_width=True)
+
+    with ce:
+        st.markdown(f'<p class="section-header">📡 Canal de Reporte</p>', unsafe_allow_html=True)
+        channel_counts = df['Open Data Channel Type'].value_counts().reset_index()
+        channel_counts.columns = ['Channel', 'count']
+        channel_labels = {
+            'PHONE': '📞 Teléfono',
+            'ONLINE': '🌐 Online',
+            'MOBILE': '📱 Móvil',
+            'UNKNOWN': '❓ Desconocido',
+        }
+        channel_counts['label'] = channel_counts['Channel'].map(
+            lambda x: channel_labels.get(x, x)
+        )
+        channel_palette = [BLUE, ACCENT, GREEN, GRAY]
+        fig_channel = go.Figure(go.Pie(
+            labels=channel_counts['label'],
+            values=channel_counts['count'],
+            hole=0.62,
+            marker=dict(
+                colors=channel_palette[:len(channel_counts)],
+                line=dict(color=DARK, width=2)
+            ),
+            textinfo='label+percent',
+            textfont=dict(color=WHITE, size=11),
+            hovertemplate="<b>%{label}</b><br>%{value:,} quejas<br>%{percent}<extra></extra>",
+            sort=True
+        ))
+        top_channel = channel_counts.iloc[0]['label']
+        top_pct = channel_counts.iloc[0]['count'] / channel_counts['count'].sum() * 100
+        fig_channel.add_annotation(
+            text=f"<b>{top_pct:.0f}%</b><br><span style='font-size:9px'>{top_channel}</span>",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(color=WHITE, size=13),
+            align='center'
+        )
+        fig_channel.update_layout(
+            paper_bgcolor=PANEL, plot_bgcolor=PANEL, height=300,
+            margin=dict(l=10, r=10, t=10, b=10),
+            legend=dict(
+                bgcolor=DARK, bordercolor=BORDER,
+                font=dict(color=WHITE, size=10),
+                orientation='v', x=1.02, y=0.5
+            ),
+            showlegend=True
+        )
+        st.plotly_chart(fig_channel, use_container_width=True)
+
+    # ─── ROW 4: Table + Histogram ───
     cx, cy = st.columns([2,3])
 
     with cx:
