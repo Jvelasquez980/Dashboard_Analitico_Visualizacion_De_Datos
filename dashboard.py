@@ -502,8 +502,21 @@ def _run_dashboard():
         on_t    = ag_df[~ag_df['sla_breach']]['resolution_days'].clip(upper=sla_thr*6)
         breach  = ag_df[ ag_df['sla_breach']]['resolution_days'].clip(upper=sla_thr*6)
         fig5 = go.Figure()
-        fig5.add_trace(go.Histogram(x=on_t,   nbinsx=50, name='A tiempo',       marker_color=GREEN, opacity=0.75))
-        fig5.add_trace(go.Histogram(x=breach, nbinsx=50, name='Incumplimiento',  marker_color=RED,   opacity=0.85))
+        bin_size = sla_thr / 20
+        fig5.add_trace(go.Histogram(
+            x=on_t,
+            xbins=dict(start=0, end=sla_thr*6, size=bin_size),
+            name='A tiempo',
+            marker_color=GREEN,
+            opacity=0.75
+        ))
+        fig5.add_trace(go.Histogram(
+            x=breach,
+            xbins=dict(start=0, end=sla_thr*6, size=bin_size),
+            name='Incumplimiento',
+            marker_color=RED,
+            opacity=0.85
+        ))
         fig5.add_vline(x=sla_thr, line_color=YELLOW, line_width=2.5, line_dash='dash',
                        annotation_text=f"SLA={sla_thr}d",
                        annotation_font_color=YELLOW, annotation_position="top right")
