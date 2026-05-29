@@ -356,15 +356,25 @@ def _run_dashboard():
         st.markdown(f'<p class="story-label">Evolución mensual de incumplimientos — Top 5 agencias por costo</p>', unsafe_allow_html=True)
         st.markdown(f'<p class="story-sub">¿Las tasas de breach mejoran o empeoran con el tiempo? Identificá patrones estacionales</p>', unsafe_allow_html=True)
         top5    = summary.nlargest(5,'cost_M')['Agency'].tolist()
-        palette = [ACCENT, RED, BLUE, YELLOW, GREEN]
+        gray_palette = ["#6b7280", "#9ca3af", "#4b5563", "#d1d5db"]
         monthly = df[df['Agency'].isin(top5)].groupby(['month','Agency'])['sla_breach'].mean().reset_index()
         fig3 = go.Figure()
+        gray_idx = 0
         for i, ag in enumerate(top5):
             d = monthly[monthly['Agency']==ag]
+            if i == 0:
+                line_color = RED
+                line_width = 3
+                marker_size = 8
+            else:
+                line_color = gray_palette[gray_idx % len(gray_palette)]
+                gray_idx += 1
+                line_width = 1.8
+                marker_size = 5
             fig3.add_trace(go.Scatter(
                 x=d['month'], y=d['sla_breach']*100, mode='lines+markers',
-                name=ag, line=dict(color=palette[i], width=2.5),
-                marker=dict(size=7, color=palette[i]),
+                name=ag, line=dict(color=line_color, width=line_width),
+                marker=dict(size=marker_size, color=line_color),
                 hovertemplate=f"<b>{ag}</b><br>%{{x}}<br>%{{y:.1f}}%<extra></extra>"
             ))
         fig3.update_layout(
@@ -383,9 +393,11 @@ def _run_dashboard():
         bc = df[df['Borough']!='UNSPECIFIED'].groupby('Borough')['breach_cost'].sum().reset_index()
         bc = bc.sort_values('breach_cost', ascending=False)
         bc['cost_M'] = bc['breach_cost'] / 1e6
+        borough_gray_palette = ["#6b7280", "#9ca3af", "#4b5563", "#d1d5db"]
+        borough_colors = [RED] + [borough_gray_palette[i % len(borough_gray_palette)] for i in range(len(bc)-1)]
         fig4 = go.Figure(go.Bar(
             x=bc['Borough'], y=bc['cost_M'],
-            marker_color=[ACCENT, RED, BLUE, YELLOW, GREEN][:len(bc)],
+            marker_color=borough_colors[:len(bc)],
             marker_line_width=0,
             text=[f"${v:.0f}M" for v in bc['cost_M']],
             textposition='outside', textfont=dict(color=WHITE, size=10),
